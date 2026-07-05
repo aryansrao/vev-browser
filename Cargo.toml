@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = [
+    "src-tauri",
+    "crates/vev-network",
+    "crates/vev-blocklist",
+    "crates/vev-fingerprint",
+    "crates/vev-tor",
+    "crates/vev-storage",
+    "crates/vev-download",
+    "crates/vev-media",
+    "crates/vev-torrent",
+    "crates/huma",
+]
+
+[profile.release]
+lto = true
+codegen-units = 1

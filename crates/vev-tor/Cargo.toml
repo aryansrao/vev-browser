@@ -1,0 +1,22 @@
+[package]
+name = "vev-tor"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# Arti: the Rust Tor implementation, embedded directly (no external tor
+# process). Chosen per spec; it is the Tor Project's official Rust client.
+# Alternatives: shelling out to the C tor daemon (rejected — external process
+# dependency, the exact thing the spec forbids) or txtorcon-style control of
+# a bundled binary (same problem). arti-client 0.44 (2026).
+arti-client = { version = "0.44", features = ["tokio", "rustls"] }
+tor-rtcompat = { version = "0.44", features = ["tokio", "rustls"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "macros"] }
+futures = "0.3"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+# Arti's directory cache uses rusqlite; macOS/Linux link the system SQLite,
+# but Windows has no sqlite3.lib, so compile the bundled copy there
+# (feature-unified into arti's rusqlite).
+rusqlite = { version = "0.39", features = ["bundled"] }

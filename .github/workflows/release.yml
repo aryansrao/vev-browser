@@ -1,0 +1,133 @@
+# Release — build installers on every v* tag and attach them to a GitHub
+# Release. Asset names are version-less so the website can link
+# .../releases/latest/download/<asset> permanently.
+#
+# Packaging uses cef-rs's bundle-cef-app (the same tool as local `make
+# bundle`): it builds the binaries and lays CEF next to them per-platform
+# (macOS .app with helpers, Windows/Linux flat directory). CEF_PATH is set so
+# the cargo build and bundle-cef-app resolve the same CEF distribution.
+
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  CEF_PATH: ${{ github.workspace }}/cef-dist
+
+jobs:
+  macos:
+    name: macOS (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            arch: arm64
+          - runner: macos-13
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install bundle-cef-app
+        run: cargo install cef --version =149.3.0 --features build-util
+      # bundle-cef-app only builds the dev profile on macOS, so optimize it
+      # via env instead of --release.
+      - name: Bundle vev.app
+        working-directory: src-tauri
+        env:
+          CARGO_PROFILE_DEV_OPT_LEVEL: 3
+          CARGO_PROFILE_DEV_DEBUG: 0
+          CARGO_PROFILE_DEV_STRIP: symbols
+        run: bundle-cef-app vev -o ../target/bundle -d Vev -i com.vev.browser -v "${GITHUB_REF_NAME#v}"
+      - name: Package .dmg
+        run: hdiutil create -volname Vev -srcfolder target/bundle/vev.app -ov -format UDZO "Vev-macos-${{ matrix.arch }}.dmg"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: Vev-macos-${{ matrix.arch }}.dmg
+          if-no-files-found: error
+
+  windows:
+    name: Windows (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      # No default features: with `sandbox` the Windows bundler expects the
+      # app as a DLL behind bootstrap.exe, which vev is not. The bundler then
+      # builds vev itself with --no-default-features to match.
+      - name: Install bundle-cef-app
+        run: cargo install cef --version =149.3.0 --no-default-features --features build-util
+      - name: Bundle
+        working-directory: src-tauri
+        run: bundle-cef-app vev -o ../target/bundle --release
+      - name: Package .zip
+        run: Compress-Archive -Path target/bundle/* -DestinationPath Vev-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: Vev-windows-x64.zip
+          if-no-files-found: error
+
+  linux:
+    name: Linux (x64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: System deps (GTK/WebKit for Tauri)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libxdo-dev libayatana-appindicator3-dev librsvg2-dev libx11-dev
+      - name: Install bundle-cef-app
+        run: cargo install cef --version =149.3.0 --no-default-features --features build-util
+      # $ORIGIN rpath so the vev binary finds libcef.so beside it in the
+      # extracted tarball without an LD_LIBRARY_PATH wrapper.
+      - name: Bundle
+        working-directory: src-tauri
+        env:
+          RUSTFLAGS: -C link-arg=-Wl,-rpath,$ORIGIN
+        run: bundle-cef-app vev -o ../target/bundle --release
+      - name: Package .tar.gz
+        run: |
+          mv target/bundle vev
+          tar -czf Vev-linux-x64.tar.gz vev
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: Vev-linux-x64.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: [macos, windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: assets/*
+          generate_release_notes: true
+          body: |
+            Builds are unsigned beta artifacts produced by CI.
+
+            - **macOS** (.dmg, Apple Silicon `arm64` / Intel `x64`): Gatekeeper will warn on
+              first launch — right-click the app → Open, or clear the quarantine flag with
+              `xattr -dr com.apple.quarantine /Applications/vev.app`.
+            - **Windows** (.zip, x64): extract anywhere and run `vev.exe`. SmartScreen may
+              warn on unsigned binaries.
+            - **Linux** (.tar.gz, x64, X11 only): extract and run `vev/vev`. Requires GTK 3
+              and WebKitGTK 4.1 (`libgtk-3-0`, `libwebkit2gtk-4.1-0`).

@@ -1,0 +1,9 @@
+/target
+.DS_Store
+node_modules/
+
+# API keys / secrets — never commit
+.env
+secrets.toml
+vev-secrets.env
+**/vev-secrets.*

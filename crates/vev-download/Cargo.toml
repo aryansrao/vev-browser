@@ -1,0 +1,15 @@
+[package]
+name = "vev-download"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# Blocking HTTP client for the segmented range-request downloader. ureq is
+# small, blocking (one thread per segment maps cleanly), and already used by
+# vev-blocklist. reqwest was rejected — it pulls a full async runtime we do
+# not need here since each segment is its own OS thread.
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+
+[dev-dependencies]
+tiny_http = "0.12"

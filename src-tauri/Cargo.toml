@@ -1,0 +1,83 @@
+[package]
+name = "vev"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "vev"
+path = "src/main.rs"
+
+[[bin]]
+name = "vev_helper"
+path = "src/bin/vev_helper.rs"
+
+[features]
+default = ["sandbox"]
+sandbox = ["cef/sandbox"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+# Pinned exactly per project policy: engine upgrades are deliberate, never a
+# side effect of `cargo update`. Crate 149.3.0 = CEF 149.0.6; full version
+# string and pin date recorded in README "Engine version".
+cef = "=149.3.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# URL parsing/validation for the address bar; servo-maintained, the de facto
+# standard (see README dependency rationale).
+url = "2"
+vev-network = { path = "../crates/vev-network" }
+vev-blocklist = { path = "../crates/vev-blocklist" }
+vev-fingerprint = { path = "../crates/vev-fingerprint" }
+vev-tor = { path = "../crates/vev-tor" }
+vev-storage = { path = "../crates/vev-storage" }
+vev-download = { path = "../crates/vev-download" }
+vev-media = { path = "../crates/vev-media" }
+vev-torrent = { path = "../crates/vev-torrent" }
+huma = { path = "../crates/huma" }
+base64 = "0.22"
+# Search-suggestion fetches (DuckDuckGo autocomplete) and the sandbox's
+# Tor-routed pre-fetch; same blocking client the rest of the workspace uses.
+# socks-proxy is REQUIRED — without it ureq panics when a proxy is set.
+ureq = { version = "3", default-features = false, features = ["rustls", "socks-proxy"] }
+# Cross-platform native window handles for embedding the CEF child view
+# (NSView on macOS, HWND on Windows, X11 window on Linux). Matches tauri's.
+raw-window-handle = "0.6"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Graphics_Gdi",
+] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# X11 view show/hide/reparent for the CEF child window on Linux (X11 only;
+# Wayland is not supported for CEF native child embedding).
+x11-dl = "2"
+# CEF on Linux needs the X11 windowing feature enabled.
+cef = { version = "=149.3.0", features = ["linux-x11"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.3"
+objc2-app-kit = { version = "0.3.2", default-features = false, features = [
+    "std",
+    "NSApplication",
+    "NSResponder",
+    "NSEvent",
+    "NSView",
+    "NSWindow",
+    "NSPasteboard",
+] }
+objc2-foundation = { version = "0.3.2", features = ["NSString"] }
+
+# Read by bundle-cef-app when assembling the macOS .app bundle. The
+# resources dir carries mac/vev.icns (the Vev wordmark), which the bundler
+# copies into Contents/Resources and wires as CFBundleIconFile.
+[package.metadata.cef.bundle]
+helper_name = "vev_helper"
+resources_path = "resources"

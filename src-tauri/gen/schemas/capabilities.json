@@ -1,0 +1,1 @@
+{"main":{"identifier":"main","description":"Shell UI capabilities: core events only; app commands are invoked directly.","local":true,"windows":["main","win-*"],"permissions":["core:default"]}}

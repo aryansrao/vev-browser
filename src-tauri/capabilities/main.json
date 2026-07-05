@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Shell UI capabilities: core events only; app commands are invoked directly.",
+  "windows": ["main", "win-*"],
+  "permissions": ["core:default"]
+}

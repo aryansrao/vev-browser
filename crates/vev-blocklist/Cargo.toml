@@ -1,0 +1,27 @@
+[package]
+name = "vev-blocklist"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# adblock-rust: Brave's network + cosmetic filter engine. Chosen because it
+# is the same engine a shipping privacy browser uses, parses EasyList/
+# EasyPrivacy syntax directly, and does network-layer matching (not DOM
+# hiding). Alternatives: hand-rolled matcher (rejected — filter syntax is
+# large and adversarial, exactly what Phase 10 fuzzing would break), or a
+# hosts-file blocklist (rejected — no per-resource-type or first-party
+# context). Actively maintained by Brave (0.12.5, 2026-05).
+adblock = { version = "0.12", default-features = false, features = [
+    "full-regex-handling",
+    # Bundle the public-suffix domain resolver so the engine is self-
+    # contained (otherwise a global resolver must be set before any match).
+    "embedded-domain-resolver",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+# HTTP client for scheduled threat-feed fetches. ureq: blocking, small, no
+# async runtime pulled in just for a periodic download. Already transitively
+# present via the cef-rs tooling.
+ureq = { version = "3", default-features = false, features = ["rustls"] }

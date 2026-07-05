@@ -1,0 +1,16 @@
+[package]
+name = "vev-torrent"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# librqbit: mature Rust BitTorrent client used as a library. Chosen because
+# it is the most complete embeddable Rust torrent engine (magnet + .torrent,
+# DHT, uTP/TCP, sequential download). Alternatives: cratetorrent (rejected —
+# archived/incomplete) or FFI to libtorrent (rejected — C++ dependency,
+# defeats the pure-Rust goal). Default TLS off; we use rustls to match the
+# rest of Vev and avoid OpenSSL.
+librqbit = { version = "8", default-features = false, features = ["rust-tls"] }
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "macros"] }
+serde = { version = "1", features = ["derive"] }

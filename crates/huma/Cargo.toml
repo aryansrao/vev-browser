@@ -1,0 +1,24 @@
+[package]
+name = "huma"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+# On-device ONNX inference for the trained Guard model. tract is pure Rust
+# (no C++/ONNXRuntime, no GPU) so it builds/runs anywhere and the model is
+# bundled in-binary. Model produced by scripts/train_guard.
+tract-onnx = "0.21"
+# Online threat-intel lookups (opt-in deep scan). Blocking client; same as
+# the rest of the workspace. socks-proxy is REQUIRED: intel scans route
+# through the embedded Tor SOCKS bridge, and without the feature ureq
+# panics at request time when a proxy is configured.
+ureq = { version = "3", default-features = false, features = ["rustls", "socks-proxy"] }
+base64 = "0.22"
+
+[dev-dependencies]
+# For pulling a real malicious-URL sample in the precision/recall test.
+ureq = { version = "3", default-features = false, features = ["rustls"] }

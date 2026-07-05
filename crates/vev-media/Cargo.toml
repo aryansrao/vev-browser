@@ -1,0 +1,17 @@
+[package]
+name = "vev-media"
+version = "0.1.0"
+edition = "2021"
+
+# Media extraction/conversion by driving the yt-dlp and ffmpeg binaries.
+# "Works everywhere" for streaming sites needs yt-dlp's maintained extractor
+# set, and mp3/format conversion needs ffmpeg — no pure-Rust equivalent
+# exists. This crate is the Rust orchestration layer: discovery, a managed
+# one-time fetch of the binaries into app-data, format listing, and download
+# with progress. The parse functions are pure and unit-tested.
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Only for the managed binary fetch; downloads themselves go through yt-dlp.
+ureq = { version = "3", default-features = false, features = ["rustls"] }

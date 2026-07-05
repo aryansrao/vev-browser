@@ -1,0 +1,65 @@
+! Vev supplementary blocklist
+! Real network-layer tracker/ad rules in EasyList syntax. This is a small,
+! hand-maintained list that ships in the binary so blocking works with zero
+! network dependency; EasyList/EasyPrivacy are loaded on top when present in
+! the app data dir (fetched on the update schedule).
+||doubleclick.net^
+||googlesyndication.com^
+||google-analytics.com^
+||googletagmanager.com^
+||googletagservices.com^
+||googleadservices.com^
+||adservice.google.com^
+||pagead2.googlesyndication.com^
+||analytics.google.com^
+||stats.g.doubleclick.net^
+||scorecardresearch.com^
+||quantserve.com^
+||adnxs.com^
+||adsystem.com^
+||criteo.com^
+||criteo.net^
+||taboola.com^
+||outbrain.com^
+||amazon-adsystem.com^
+||facebook.com/tr^
+||connect.facebook.net^
+||hotjar.com^
+||mixpanel.com^
+||segment.io^
+||segment.com/analytics.js^
+||fullstory.com^
+||mc.yandex.ru^
+||bat.bing.com^
+||ads.linkedin.com^
+||analytics.twitter.com^
+||ads-twitter.com^
+||branch.io^
+||amplitude.com^
+||sentry.io^
+||newrelic.com^
+||nr-data.net^
+||moatads.com^
+||adroll.com^
+||pubmatic.com^
+||rubiconproject.com^
+||openx.net^
+||casalemedia.com^
+||chartbeat.com^
+||parsely.com^
+! YouTube ad-serving endpoints (safe to block — these are ad/telemetry
+! paths, never the video streams or player APIs). In-stream ads are handled
+! by the document_start scriptlet (youtube.js) which prunes ad inventory
+! from the player response before playback — the Brave/uBO approach.
+! Removed from earlier versions (they broke real playback):
+!   googlevideo.com/videoplayback*&oad — could catch main-video URLs; muxed
+!     ads are not URL-distinguishable, the scriptlet handles them.
+!   youtube.com/api/stats/qoe — playback telemetry the player treats as a
+!     delivery-health signal; blocking it risks player error/retry loops.
+||youtube.com/pagead/
+||youtube.com/ptracking
+||youtube.com/api/stats/ads
+||doubleclick.net/pagead/
+||static.doubleclick.net^
+||youtube.com/get_midroll_
+||youtube.com/youtubei/v1/player/ad_break

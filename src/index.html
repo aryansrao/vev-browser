@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Vev</title>
+    <link rel="stylesheet" href="shell.css" />
+  </head>
+  <body>
+    <!-- Top chrome: tab strip + toolbar. Content (CEF views or a shell-
+         rendered internal page) sits below. -->
+    <div id="chrome" data-tauri-drag-region>
+      <div id="tabstrip" data-tauri-drag-region>
+        <div id="tabs"></div>
+        <button class="ghost mini" id="newtab" data-icon="plus" title="New tab (⌘T)"></button>
+      </div>
+      <div id="toolbar">
+        <div class="nav-cluster">
+          <button class="ghost" id="back" data-icon="arrow-left" title="Back"></button>
+          <button class="ghost" id="forward" data-icon="arrow-right" title="Forward"></button>
+          <button class="ghost" id="reload" data-icon="refresh" title="Reload (⌘R)"></button>
+        </div>
+        <div id="omnibox" class="omnibox">
+          <span class="sec-chip" id="sec-chip" data-icon="lock" title="Connection security"></span>
+          <input
+            id="address"
+            class="addr-input"
+            type="text"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="Search the web privately, or enter an address"
+          />
+          <span class="addr-hint" id="addr-hint">⌘L</span>
+          <div id="suggest" class="suggest hidden"></div>
+        </div>
+        <div class="action-cluster">
+          <span id="zoom-badge" class="zoom-badge hidden" title="Zoom"></span>
+          <button class="ghost" id="star" data-icon="star" title="Bookmark (⌘D)"></button>
+          <button class="ghost badge-host" id="dllist" data-icon="download" title="Downloads (⌘J)"><span class="badge hidden" id="dl-badge"></span></button>
+          <button class="ghost" id="read" data-icon="sparks" title="Huma Read — summarize page"></button>
+          <button class="ghost" id="ext" data-icon="puzzle" title="Extensions"></button>
+          <button class="ghost" id="menu" data-icon="menu" title="Menu"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Find-in-page bar (⌘F). -->
+    <div id="findbar" class="findbar hidden">
+      <span data-icon="search" class="find-icon"></span>
+      <input id="find-input" class="find-input" type="text" placeholder="Find in page" spellcheck="false" />
+      <span id="find-count" class="find-count"></span>
+      <button class="ghost mini" id="find-prev" data-icon="nav-arrow-up" title="Previous (⇧⏎)"></button>
+      <button class="ghost mini" id="find-next" data-icon="nav-arrow-down" title="Next (⏎)"></button>
+      <button class="ghost mini" id="find-close" data-icon="xmark" title="Close (Esc)"></button>
+    </div>
+
+    <!-- Shell-rendered internal page host (settings, history, incognito home…). -->
+    <div id="page" class="page hidden"></div>
+
+    <!-- Huma island: a Dynamic-Island-style nudge that drops from the top.
+         Morphs between a compact tracker-count pill and an expanded card for
+         blocked trackers (allow), phishing warnings (allow/decline), Huma Read
+         summaries, and brief confirmations. -->
+    <div id="island" class="island" data-state="hidden">
+      <button id="island-compact" class="island-compact"></button>
+      <div id="island-expanded" class="island-expanded"></div>
+    </div>
+
+    <!-- Lightweight overlay host: command palette + anchored menu popover. -->
+    <div id="overlay" class="overlay hidden">
+      <div id="overlay-backdrop"></div>
+      <div id="overlay-panel"></div>
+    </div>
+
+    <script src="icons.js"></script>
+    <script src="pages.js"></script>
+    <script src="shell.js"></script>
+  </body>
+</html>

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # The portable workspace — privacy, security, blocking, storage, and the
+  # on-device AI. None of these need CEF or a window, so they must build and
+  # pass on every platform. This is the cross-platform verification for the
+  # bulk of Vev's logic.
+  portable:
+    name: portable crates (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Test portable crates
+        run: >
+          cargo test
+          -p huma
+          -p vev-fingerprint
+          -p vev-network
+          -p vev-blocklist
+          -p vev-storage
+          -p vev-download
+          -p vev-torrent
+
+  # The Tor crate pulls a large async stack (arti); build it separately so a
+  # slow dependency graph doesn't gate the fast portable tests.
+  tor:
+    name: vev-tor (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build -p vev-tor
+
+  # Build the full browser (with CEF) on each desktop OS. cef-dll-sys
+  # auto-downloads the CEF binary distribution for the target, so this compiles
+  # the platform-specific window-embedding code (macOS NSView, Windows HWND,
+  # Linux X11) on real runners — the verification the port needs.
+  app:
+    name: build vev (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Linux system deps (GTK/WebKit for Tauri)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libxdo-dev libayatana-appindicator3-dev librsvg2-dev libx11-dev
+      - name: Build vev + vev_helper
+        run: cargo build -p vev
+
