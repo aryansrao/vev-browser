@@ -29,8 +29,6 @@ jobs:
         include:
           - runner: macos-latest
             arch: arm64
-          - runner: macos-13
-            arch: x64
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -124,7 +122,7 @@ jobs:
           body: |
             Builds are unsigned beta artifacts produced by CI.
 
-            - **macOS** (.dmg, Apple Silicon `arm64` / Intel `x64`): Gatekeeper will warn on
+            - **macOS** (.dmg, Apple Silicon `arm64` only): Gatekeeper will warn on
               first launch — right-click the app → Open, or clear the quarantine flag with
               `xattr -dr com.apple.quarantine /Applications/vev.app`.
             - **Windows** (.zip, x64): extract anywhere and run `vev.exe`. SmartScreen may
